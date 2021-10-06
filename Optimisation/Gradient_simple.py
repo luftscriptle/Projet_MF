@@ -18,9 +18,11 @@ def grad_i(rating_mat,  i_mat, u_mat, reg_i, reg_u):
     return -rating_mat.dot(u_mat) + i_mat.dot(u_mat.T).dot(u_mat) + reg_i*i_mat
 
 
-def gradient_descent(rating_mat, init_i, init_u, reg_i, reg_u, eta, n_iter=1000, ratio=1):
+def gradient_descent(rating_mat, init_i, init_u, reg, eta, n_iter=1000, ratio_reg=1, ratio=1):
     step_u = eta
     step_i = eta / ratio
+    reg_u = reg
+    reg_i = reg/ratio_reg
     i_mat = init_i
     u_mat = init_u
     loss_vec = np.zeros((n_iter, 4))
