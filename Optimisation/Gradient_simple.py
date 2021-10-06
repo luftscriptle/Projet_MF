@@ -1,9 +1,9 @@
 import numpy as np
-
+import tqdm
 
 def cost(rating_mat, i_mat, u_mat, reg_i, reg_u):
     est_rating = i_mat.dot(u_mat.T)
-    term_1 = np.linlalg.norm(rating_mat - est_rating)**2
+    term_1 = np.linalg.norm(rating_mat - est_rating)**2
     term_2 = reg_i*np.linalg.norm(i_mat)**2
     term_3 = reg_u*np.linalg.norm(u_mat)**2
     loss = term_1 + term_2 + term_3
@@ -24,7 +24,7 @@ def gradient_descent(rating_mat, init_i, init_u, reg_i, reg_u, eta, n_iter=1000,
     i_mat = init_i
     u_mat = init_u
     loss_vec = np.zeros((n_iter, 4))
-    for i in range(n_iter):
+    for i in tqdm.tqdm(range(n_iter)):
         grad_1, grad_2 = grad_u(rating_mat, i_mat, u_mat, reg_i, reg_u), grad_i(rating_mat, i_mat, u_mat, reg_i, reg_u)
         u_mat = u_mat - step_u*grad_1
         i_mat = i_mat - step_i*grad_2
