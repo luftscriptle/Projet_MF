@@ -22,12 +22,12 @@ def split_data(alpha, rating_matrix=None):
                     '\\Projet_1\\Data_processing\\data\\items.npy')
 
     n_sample = rating_matrix.shape[0]
-    n_user = rating_matrix.shape[0]
-    n_movie = rating_matrix.shape[1]
+    # n_user = rating_matrix.shape[0]
+    # n_movie = rating_matrix.shape[1]
     n_test = np.int32(n_sample*alpha)
 
     #  print(rating_matrix.shape)  # (n_user, n_movie)
-    u = np.sum(np.int32(rating_matrix == 0))
+    # u = np.sum(np.int32(rating_matrix == 0))
     index_test = np.random.choice(np.arange(0, n_sample), n_test)
     index_train = [i for i in range(n_sample) if i not in index_test]
     user_train = users[index_train]
@@ -36,7 +36,20 @@ def split_data(alpha, rating_matrix=None):
     movie_test = items[index_test]
     rating_train = np.zeros_like(rating_matrix)
     rating_train[user_train, movie_train] = rating_matrix[user_train, movie_train]
-    return rating_train, user_test, index_train, movie_train, movie_test
+    return rating_train, user_test, index_train, movie_train, movie_test, index_test
+
+
+def evaluate(u_mat, i_mat, rating_matrix, user_test, movie_test, index_test):
+    pseudo_rating = u_mat.dot(i_mat.T)
+    loss = 0
+    for i, index in enumerate(index_test):
+        predicted_rating = pseudo_rating[movie_test[i], user_test[i]]
+        obj = rating_matrix[user_test[i], movie_test[i]]
+        diff = np.abs(predicted_rating - obj)**2
+        # print(type(diff))
+        loss += diff
+    loss = loss/index_test.size
+    return np.sqrt(loss)
 
 
 if __name__ == '__main__':
