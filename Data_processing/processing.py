@@ -1,12 +1,6 @@
-import os
-import pandas as pd
-from mxnet import gluon
 import numpy as np
-from d2l import mxnet as d2l
 
-d2l.DATA_HUB['ml-100k'] = (
-    'http://files.grouplens.org/datasets/movielens/ml-100k.zip',
-    'cd4dcac4241c8a4ad7badc7ca635da8a69dddb83')
+"""
 def read_data_ml100k():
     data_dir = d2l.download_extract('ml-100k')
     names = ['user_id', 'item_id', 'rating', 'timestamp']
@@ -15,18 +9,48 @@ def read_data_ml100k():
     num_users = data.user_id.unique().shape[0]
     num_items = data.item_id.unique().shape[0]
     return data, num_users, num_items
+"""
+
+
+def split_data(alpha, rating_matrix=None):
+    if rating_matrix is None:
+        rating_matrix = np.load('C:\\Users\\louis\\Documents\\IASD\\Projet_sciences_de_donnees'
+                                '\\Projet_1\\Data_processing\\data\\rating_matrix.npy')
+    users = np.load('C:\\Users\\louis\\Documents\\IASD\\Projet_sciences_de_donnees'
+                    '\\Projet_1\\Data_processing\\data\\users.npy')
+    items = np.load('C:\\Users\\louis\\Documents\\IASD\\Projet_sciences_de_donnees'
+                    '\\Projet_1\\Data_processing\\data\\items.npy')
+
+    n_sample = rating_matrix.shape[0]
+    # n_user = rating_matrix.shape[0]
+    # n_movie = rating_matrix.shape[1]
+    n_test = np.int32(n_sample*alpha)
+
+    #  print(rating_matrix.shape)  # (n_user, n_movie)
+    # u = np.sum(np.int32(rating_matrix == 0))
+    index_test = np.random.choice(np.arange(0, n_sample), n_test)
+    index_train = [i for i in range(n_sample) if i not in index_test]
+    user_train = users[index_train]
+    user_test = users[index_test]
+    movie_train = items[index_train]
+    movie_test = items[index_test]
+    rating_train = np.zeros_like(rating_matrix)
+    rating_train[user_train, movie_train] = rating_matrix[user_train, movie_train]
+    return rating_train, user_test, index_train, movie_train, movie_test, index_test
+
+
+def evaluate(u_mat, i_mat, rating_matrix, user_test, movie_test, index_test):
+    pseudo_rating = u_mat.dot(i_mat.T)
+    loss = 0
+    for i, index in enumerate(index_test):
+        predicted_rating = pseudo_rating[movie_test[i], user_test[i]]
+        obj = rating_matrix[user_test[i], movie_test[i]]
+        diff = np.abs(predicted_rating - obj)**2
+        # print(type(diff))
+        loss += diff
+    loss = loss/index_test.size
+    return np.sqrt(loss)
+
 
 if __name__ == '__main__':
-    data, num_users, num_items = read_data_ml100k()
-    print(data[:1])
-    print(f'shape of the data : {data.shape}, type : {type(data)}')
-    print(num_users)
-    print(num_items)
-    print(data[-100:])
-    rating_matrix = np.zeros((num_items, num_users)).T
-    keys = [key for key in data]
-    users = data[keys[0]].to_numpy()
-    items = data[keys[1]].to_numpy()
-    ratings = data[keys[2]].to_numpy()
-    rating_matrix[users, items] = ratings
-    # Split the data_set
+    a, _ = split_data(0.1)
